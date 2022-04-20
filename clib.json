@@ -1,0 +1,22 @@
+{
+    "name": "c_github-parser",
+    "version": "",
+    "repo": "binRick/c_github-parser",
+    "description": "C Debugger",
+    "keywords": [
+        "c",
+        "parser",
+        "github"
+    ],
+    "license": "MIT",
+    "files": [],
+    "makefile": "Makefile",
+    "install": "make install",
+    "dependencies": {
+        "clibs/module": "0.1.1",
+        "binRick/c_dbg": "f7ffb638cd774bafe100bfeb22c7dc0d06840ce5",
+        "4thel00z/env.h": "0.1.0",
+        "commander": "1.3.2",
+        "list": "0.2.0"
+    }
+}
