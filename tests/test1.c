@@ -1,6 +1,7 @@
 /******************************************************************/
 #include <stdbool.h>
 #include <stdio.h>
+#include <time.h>
 #include <stdlib.h>
 #include <string.h>
 /******************************************************************/
@@ -13,15 +14,21 @@
 #define STAR_URL_TEMPLATE    "https://github.com/stars/binRick/lists/%s"
 #define C_REPO_STAR_TPL      "https://github.com/stars/%s/lists/%s"
 /******************************************************************/
+#include "../../time/timestamp.h"
+/******************************************************************/
+#include "../../time/timequick.h"
+/******************************************************************/
 #define DEFAULT_LOG_LEVEL    LOG_TRACE
 #include "../../log/log.c"
 /******************************************************************/
 #include "../deps/tiny-regex-c/re.h"
+#include "../deps/case/case.h"
 /******************************************************************/
 #include <gumbo.h>
 /******************************************************************/
 #include "../include/get-element-by-id.h"
 #include "../src/get-element-by-id.c"
+#include "../src/get-elements-by-tag-name.c"
 /******************************************************************/
 #include "../deps/b64/buffer.c"
 #include "../deps/b64/decode.c"
@@ -47,8 +54,6 @@ struct args_t  *args;
 
 
 /******************************************************************/
-
-
 void parse_html(const char *html) {
   log_debug("parsing:%db", strlen(html));
   GumboOutput    *output = gumbo_parse(html);
@@ -85,7 +90,6 @@ char *encoded_md5(const char *to_encode){
 /******************************************************************/
 char * url_cached_file(const char *url){
   char *p = malloc(1024);
-
   sprintf(p, "%s/%s.txt", CACHE_DIRECTORY, encoded_md5(url));
   return(strdup(p));
 }
@@ -178,6 +182,15 @@ void setup_args(const int argc, const char **argv){
   command_parse(cmd, argc, argv);
 }
 
+void parse_urls(){
+  char *u  = "https://github.com/binRick?tab=stars";
+  char *html = get_url_content(u);
+  parse_html(html);
+
+  char *u1 = "https://github.com/stars/binRick/lists/c";
+  char *html1 = get_url_content(u1);
+  parse_html(html1);
+}
 
 int main(const int argc, const char **argv) {
   if (!fs_exists(CACHE_DIRECTORY)) {
@@ -185,11 +198,5 @@ int main(const int argc, const char **argv) {
   }
   setup_args(argc, argv);
   debug_args();
-  char *u  = "https://github.com/binRick?tab=stars";
-  char *u1 = "https://github.com/stars/binRick/lists/c";
-//  get_url_content(u);
-  char *html = get_url_content(u);
-
-  parse_html(html);
-  // get_url_content(u1);
+  parse_urls();
 }

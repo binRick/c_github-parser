@@ -25,6 +25,7 @@
     "pepaslabs/rhash_md5.c": "0.0.1",
     "clibs/http-get.c": "0.4.0",
     "clibs/timestamp": "0.0.2",
-    "jwerle/fs.c": "0.2.0"
+    "jwerle/fs.c": "0.2.0",
+    "stephenmathieson/case.c": "0.2.0"
   }
 }
