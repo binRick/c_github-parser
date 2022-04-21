@@ -4,29 +4,27 @@
 #include <time.h>
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
+#include <sys/stat.h>
 /******************************************************************/
 #include <curl/curl.h>
-/******************************************************************/
-#define SKIP_LIST_C          1
+#include <gumbo.h>
 /******************************************************************/
 #define DEFAULT_USERNAME     "binRick"
 #define CACHE_DIRECTORY      "./.cache"
 #define STAR_URL_TEMPLATE    "https://github.com/stars/binRick/lists/%s"
 #define C_REPO_STAR_TPL      "https://github.com/stars/%s/lists/%s"
 /******************************************************************/
-#include "../../time/timestamp.h"
-/******************************************************************/
+#include "../../time/timestamp.c"
 #include "../../time/timequick.h"
 /******************************************************************/
 #define DEFAULT_LOG_LEVEL    LOG_TRACE
+#define SKIP_LIST_C
 #include "../../log/log.c"
 /******************************************************************/
 #include "../deps/tiny-regex-c/re.h"
 #include "../deps/case/case.h"
 /******************************************************************/
-#include <gumbo.h>
-/******************************************************************/
-#include "../include/get-element-by-id.h"
 #include "../src/get-element-by-id.c"
 #include "../src/get-elements-by-tag-name.c"
 /******************************************************************/
@@ -51,8 +49,6 @@ struct args_t {
 /******************************************************************/
 struct command *cmd;
 struct args_t  *args;
-
-
 /******************************************************************/
 void parse_html(const char *html) {
   log_debug("parsing:%db", strlen(html));
@@ -75,7 +71,7 @@ void parse_html(const char *html) {
 
 
 /******************************************************************/
-char *encoded_md5(const char *to_encode){
+char *encode_md5(const char *to_encode){
   const char    *s = strdup(to_encode);
   md5_ctx       ctx;
   unsigned char hash[16];
@@ -90,7 +86,10 @@ char *encoded_md5(const char *to_encode){
 /******************************************************************/
 char * url_cached_file(const char *url){
   char *p = malloc(1024);
-  sprintf(p, "%s/%s.txt", CACHE_DIRECTORY, encoded_md5(url));
+  time_t now = time(NULL);
+  struct tm *tm_struct = localtime(&now);
+  int hour = tm_struct->tm_hour;
+  sprintf(p, "%s/%s-%d.txt", CACHE_DIRECTORY, encode_md5(url), hour);
   return(strdup(p));
 }
 
@@ -105,10 +104,9 @@ char * get_url_content(const char *url) {
   log_trace("Fetching url "AC_RESETALL AC_YELLOW AC_REVERSED "%s"AC_RESETALL, url);
   tq_start("");
   http_get_response_t *res;
-  bool                dofree = false;
   char                *html;
 
-  log_debug("%s -> %s | %s |", url, encoded_md5(url), url_cached_file(url));
+  log_debug("%s -> %s | %s |", url, encode_md5(url), url_cached_file(url));
   log_debug("Cached File Exists: %s", url_cached_file_exists(url) ? "Yes" : "No");
   if (!url_cached_file_exists(url)) {
     log_trace("fetching remote content");
@@ -127,9 +125,10 @@ char * get_url_content(const char *url) {
     html = fs_read(url_cached_file(url));
   }
   log_trace(
-    AC_RESETALL AC_REVERSED AC_GREEN "working with" AC_RESETALL " " AC_BLUE AC_BOLD "%d" AC_RESETALL " " AC_RESETALL "bytes" AC_RESETALL " :: " AC_YELLOW "%s" AC_RESETALL,
-    strlen(html),
-    url
+    AC_RESETALL AC_REVERSED AC_GREEN "working with" AC_RESETALL " " AC_BLUE AC_BOLD "%d" AC_RESETALL " " AC_RESETALL "bytes" AC_RESETALL " :: " AC_YELLOW "%s" AC_RESETALL " in " AC_RESETALL AC_MAGENTA AC_BOLD "%s" AC_RESETALL
+    , strlen(html)
+    , url
+    , tq_stop(".")
     );
   return(strdup(html));
 }
@@ -165,7 +164,7 @@ static void set_username(command_t *self) {
 }
 
 
-static void verbose(command_t *self) {
+static void set_verbose(command_t *self) {
   args->verbose = true;
 }
 
@@ -177,9 +176,10 @@ void setup_args(const int argc, const char **argv){
   args->additional_args = list_new();
 
   command_init(cmd, argv[0], "0.0.1");
-  command_option(cmd, "-v", "--verbose", "Enable Verbose Mode", verbose);
+  command_option(cmd, "-v", "--verbose", "Enable Verbose Mode", set_verbose);
   command_option(cmd, "-u", "--username <username>", "Github Username", set_username);
   command_parse(cmd, argc, argv);
+
 }
 
 void parse_urls(){
