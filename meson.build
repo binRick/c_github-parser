@@ -15,13 +15,21 @@ libObjectively_dep = dependency(
   'Objectively',
   fallback: ['Objectively', 'Objectively_dep']
 )
+libgumbo_dep = dependency(
+  'gumbo',
+  fallback: ['gumbo'],
+)
+libcurl_dep = dependency(
+  'libcurl',
+  fallback: ['libcurl'],
+)
 libconfig_dep = dependency(
   'libconfuse',
   fallback: ['libconfuse', 'libconfuse_dep'],
   version: '==3.3',
 )
 #//***********************************************************/
-config_deps = [libconfig_dep,libObjectively_dep]
+config_deps = [libconfig_dep,libObjectively_dep,libcurl_dep,libgumbo_dep]
 #//***********************************************************/
 incdir = include_directories(
   './include', 
